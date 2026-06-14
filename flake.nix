@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/nixos-22.11";
+      url = "github:NixOS/nixpkgs/nixos-26.05";
     };
     flake-utils = {
       url = "github:numtide/flake-utils";
@@ -28,7 +28,7 @@
         devShell = pkgs.mkShell {
           buildInputs = [
             elixir
-            elixir_ls
+            elixir-ls
             glibcLocales
           ]
           ++ optional stdenv.isLinux inotify-tools
