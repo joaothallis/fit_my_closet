@@ -27,6 +27,10 @@ defmodule FitMyClosetWeb.Endpoint do
     only: FitMyClosetWeb.static_paths(),
     raise_on_missing_only: code_reloading?
 
+  plug Plug.Static,
+    at: "/uploads",
+    from: Path.expand("priv/static/uploads")
+
   if Mix.env() == :dev do
     plug Tidewave
   end

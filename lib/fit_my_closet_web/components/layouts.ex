@@ -45,6 +45,9 @@ defmodule FitMyClosetWeb.Layouts do
       <div class="flex-none">
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <li>
+            <.link href={~p"/closet-organizer"} class="btn btn-ghost">Closet Organizer</.link>
+          </li>
+          <li>
             <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
           </li>
           <li>
@@ -63,7 +66,7 @@ defmodule FitMyClosetWeb.Layouts do
     </header>
 
     <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
+      <div class="mx-auto max-w-5xl space-y-4">
         {render_slot(@inner_block)}
       </div>
     </main>

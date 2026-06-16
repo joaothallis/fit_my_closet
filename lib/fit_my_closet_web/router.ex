@@ -18,6 +18,7 @@ defmodule FitMyClosetWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    live "/closet-organizer", ClosetOrganizerLive, :index
   end
 
   # Other scopes may use custom stacks.
