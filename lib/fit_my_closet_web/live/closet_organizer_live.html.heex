@@ -3,51 +3,53 @@
 
   <div class="bg-white shadow-md rounded-lg p-6 mb-8">
     <h2 class="text-xl font-semibold mb-4">Analyze a new picture</h2>
-    <form id="upload-form" phx-submit="save" phx-change="validate">
-      <label
-        class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-indigo-500 transition-colors cursor-pointer"
-        phx-drop-target={@uploads.image.ref}
-      >
-        <.live_file_input upload={@uploads.image} class="hidden" />
-        <div class="flex flex-col items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <span class="text-gray-600">Click to upload or drag and drop</span>
-          <span class="text-xs text-gray-400">JPG, JPEG, PNG up to 10MB</span>
-        </div>
-      </label>
-
-      <%= for entry <- @uploads.image.entries do %>
-        <div class="mt-4 flex items-center space-x-4">
-          <.live_img_preview entry={entry} class="w-24 h-24 object-cover rounded-md" />
-          <div class="flex-1">
-            <div class="h-2 bg-gray-200 rounded-full">
-              <div class="h-2 bg-indigo-600 rounded-full" style={"width: #{entry.progress}%"}></div>
-            </div>
+    <.simple_form for={@form} id="upload-form" phx-submit="save" phx-change="validate">
+      <div class="space-y-4">
+        <label
+          class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-indigo-500 transition-colors cursor-pointer"
+          phx-drop-target={@uploads.image.ref}
+        >
+          <.live_file_input upload={@uploads.image} class="hidden" />
+          <div class="flex flex-col items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="text-gray-600">Click to upload or drag and drop</span>
+            <span class="text-xs text-gray-400">JPG, JPEG, PNG up to 10MB</span>
           </div>
-          <button type="button" phx-click="cancel-upload" phx-value-ref={entry.ref} class="text-red-500 hover:text-red-700">
-            &times;
-          </button>
-        </div>
-      <% end %>
+        </label>
 
-      <div class="mt-6">
-        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50" disabled={Enum.empty?(@uploads.image.entries) || @loading}>
+        <%= for entry <- @uploads.image.entries do %>
+          <div class="flex items-center space-x-4 bg-gray-50 p-3 rounded-md">
+            <.live_img_preview entry={entry} class="w-16 h-16 object-cover rounded-md" />
+            <div class="flex-1">
+              <div class="text-sm font-medium text-gray-900"><%= entry.client_name %></div>
+              <div class="h-2 bg-gray-200 rounded-full mt-1">
+                <div class="h-2 bg-indigo-600 rounded-full" style={"width: #{entry.progress}%"}></div>
+              </div>
+            </div>
+            <button type="button" phx-click="cancel-upload" phx-value-ref={entry.ref} class="text-red-500 hover:text-red-700">
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+          </div>
+        <% end %>
+
+        <.input field={@form[:user_context]} type="textarea" label="Additional Context (Optional)" placeholder="e.g. This is a child's closet. I want to prioritize space for shoes and toys." />
+      </div>
+
+      <:actions>
+        <.button type="submit" class="w-full" disabled={Enum.empty?(@uploads.image.entries) || @loading}>
           <%= if @loading do %>
             <span class="flex items-center justify-center">
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <.icon name="hero-arrow-path" class="animate-spin mr-2 h-5 w-5" />
               Analyzing...
             </span>
           <% else %>
             Analyze Closet
           <% end %>
-        </button>
-      </div>
-    </form>
+        </.button>
+      </:actions>
+    </.simple_form>
   </div>
 
   <div class="space-y-8">
@@ -63,11 +65,18 @@
             <img src={analysis.image_path} alt="Closet" class="w-full h-64 md:h-full object-cover" />
           </div>
           <div class="md:w-2/3 p-6">
-            <div class="flex justify-between items-start mb-4">
+            <div class="flex justify-between items-start mb-2">
               <h3 class="text-lg font-bold text-gray-900">
                 Analysis from <%= Calendar.strftime(analysis.inserted_at, "%b %d, %Y %H:%M") %>
               </h3>
             </div>
+
+            <%= if analysis.user_context && analysis.user_context != "" do %>
+              <div class="mb-4 p-3 bg-indigo-50 rounded-md border border-indigo-100">
+                <span class="text-xs font-bold text-indigo-700 uppercase tracking-wide">Your Context:</span>
+                <p class="text-sm text-gray-800 mt-1 italic">"<%= analysis.user_context %>"</p>
+              </div>
+            <% end %>
 
             <%= if is_nil(analysis.analysis_result) do %>
               <div class="flex items-center text-amber-600 animate-pulse">

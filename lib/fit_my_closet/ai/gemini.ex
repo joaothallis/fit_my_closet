@@ -6,19 +6,21 @@ defmodule FitMyCloset.AI.Gemini do
   @model "gemini-flash-latest"
   @base_url "https://generativelanguage.googleapis.com/v1beta/models"
 
-  def analyze_closet(image_path) do
+  def analyze_closet(image_path, user_context \\ nil) do
     api_key = Application.get_env(:fit_my_closet, :gemini_api_key)
 
     if is_nil(api_key) do
       {:error, "GEMINI_API_KEY is not configured"}
     else
-      do_analyze(image_path, api_key)
+      do_analyze(image_path, user_context, api_key)
     end
   end
 
-  defp do_analyze(image_path, api_key) do
+  defp do_analyze(image_path, user_context, api_key) do
     image_data = File.read!(image_path)
     mime_type = get_mime_type(image_path)
+
+    context_prompt = if user_context && user_context != "", do: "\nAdditional context from the user: #{user_context}", else: ""
 
     body = %{
       "contents" => [
@@ -28,6 +30,7 @@ defmodule FitMyCloset.AI.Gemini do
               "text" => """
               I am providing a picture of a closet. Please analyze it and identify different sections or areas of the closet.
               For each section, suggest the type of clothes that should be kept there (e.g., hanging space for dresses/coats, shelves for folded sweaters, drawers for underwear, top shelf for seasonal items).
+              #{context_prompt}
 
               Return the result as a JSON object with a 'sections' key, which is a list of objects.
               Each object should have 'name', 'description', and 'recommended_clothes' (as a single string with items separated by commas).

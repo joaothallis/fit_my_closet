@@ -10,7 +10,19 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
      socket
      |> assign(:analyses, Closets.list_analyses())
      |> assign(:loading, false)
+     |> assign(:form, to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{})))
      |> allow_upload(:image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
+  end
+
+  @impl true
+  def handle_event("validate", %{"closet_analysis" => params}, socket) do
+    form =
+      %FitMyCloset.Closets.ClosetAnalysis{}
+      |> Closets.change_analysis(params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply, assign(socket, form: form)}
   end
 
   @impl true
@@ -24,7 +36,7 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
   end
 
   @impl true
-  def handle_event("save", _params, socket) do
+  def handle_event("save", %{"closet_analysis" => params}, socket) do
     image_paths =
       consume_uploaded_entries(socket, :image, fn %{path: path}, entry ->
         ext = Path.extname(entry.client_name)
@@ -36,13 +48,14 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
 
     case image_paths do
       [image_path] ->
-        case Closets.create_analysis(%{image_path: image_path}) do
+        user_context = params["user_context"]
+        case Closets.create_analysis(%{image_path: image_path, user_context: user_context}) do
           {:ok, analysis} ->
             # Trigger async analysis
             Task.async(fn ->
               # full path for file reading
               full_path = Path.join(["priv", "static", String.replace(image_path, "/uploads/", "uploads/")])
-              result = Gemini.analyze_closet(full_path)
+              result = Gemini.analyze_closet(full_path, user_context)
               {:analysis_complete, analysis.id, result}
             end)
 
@@ -50,10 +63,11 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
              socket
              |> assign(:loading, true)
              |> put_flash(:info, "Image uploaded! Analyzing...")
-             |> assign(:analyses, [analysis | socket.assigns.analyses])}
+             |> assign(:analyses, [analysis | socket.assigns.analyses])
+             |> assign(:form, to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{})))}
 
-          {:error, _changeset} ->
-            {:noreply, put_flash(socket, :error, "Could not save analysis.")}
+          {:error, changeset} ->
+            {:noreply, assign(socket, form: to_form(changeset))}
         end
 
       _ ->
