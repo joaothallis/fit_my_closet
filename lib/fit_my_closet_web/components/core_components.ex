@@ -100,15 +100,18 @@ defmodule FitMyClosetWeb.CoreComponents do
   attr :variant, :string, values: ~w(primary)
   slot :inner_block, required: true
 
-  def button(%{rest: rest} = assigns) do
+  def button(assigns) do
     variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
-
+    variant_class = Map.fetch!(variants, assigns[:variant])
+    
     assigns =
-      assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
-      end)
+      assign(assigns, :class, [
+        "btn",
+        variant_class,
+        assigns[:class]
+      ])
 
-    if rest[:href] || rest[:navigate] || rest[:patch] do
+    if assigns.rest[:href] || assigns.rest[:navigate] || assigns.rest[:patch] do
       ~H"""
       <.link class={@class} {@rest}>
         {render_slot(@inner_block)}
@@ -327,9 +330,9 @@ defmodule FitMyClosetWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
+      <div class="space-y-6">
         {render_slot(@inner_block, f)}
-        <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
+        <div :for={action <- @actions} class="flex items-center justify-between gap-6">
           {render_slot(action, f)}
         </div>
       </div>
