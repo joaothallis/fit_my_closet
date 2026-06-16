@@ -39,7 +39,6 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
         case Closets.create_analysis(%{image_path: image_path}) do
           {:ok, analysis} ->
             # Trigger async analysis
-            parent = self()
             Task.async(fn ->
               # full path for file reading
               full_path = Path.join(["priv", "static", String.replace(image_path, "/uploads/", "uploads/")])
