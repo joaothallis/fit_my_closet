@@ -11,13 +11,13 @@ defmodule FitMyCloset.Closets do
   Returns the list of closet_analyses.
   """
   def list_analyses do
-    Repo.all(from c in ClosetAnalysis, order_by: [desc: c.inserted_at])
+    Repo.all(from c in ClosetAnalysis, order_by: [desc: c.inserted_at], preload: [:images])
   end
 
   @doc """
   Gets a single closet_analysis.
   """
-  def get_analysis!(id), do: Repo.get!(ClosetAnalysis, id)
+  def get_analysis!(id), do: Repo.get!(ClosetAnalysis, id) |> Repo.preload(:images)
 
   @doc """
   Creates a closet_analysis.

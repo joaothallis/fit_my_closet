@@ -3,9 +3,9 @@ defmodule FitMyCloset.Closets.ClosetAnalysis do
   import Ecto.Changeset
 
   schema "closet_analyses" do
-    field :image_path, :string
     field :analysis_result, :map
     field :user_context, :string
+    has_many :images, FitMyCloset.Closets.ClosetImage
 
     timestamps()
   end
@@ -13,7 +13,7 @@ defmodule FitMyCloset.Closets.ClosetAnalysis do
   @doc false
   def changeset(closet_analysis, attrs) do
     closet_analysis
-    |> cast(attrs, [:image_path, :analysis_result, :user_context])
-    |> validate_required([:image_path])
+    |> cast(attrs, [:analysis_result, :user_context])
+    |> cast_assoc(:images)
   end
 end

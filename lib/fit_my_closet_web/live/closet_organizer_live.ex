@@ -11,7 +11,7 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
      |> assign(:analyses, Closets.list_analyses())
      |> assign(:loading, false)
      |> assign(:form, to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{})))
-     |> allow_upload(:image, accept: ~w(.jpg .jpeg .png), max_entries: 1)}
+     |> allow_upload(:image, accept: ~w(.jpg .jpeg .png), max_entries: 5)}
   end
 
   @impl true
@@ -46,32 +46,40 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
         {:ok, "/uploads/#{filename}"}
       end)
 
-    case image_paths do
-      [image_path] ->
-        user_context = params["user_context"]
-        case Closets.create_analysis(%{image_path: image_path, user_context: user_context}) do
-          {:ok, analysis} ->
-            # Trigger async analysis
-            Task.async(fn ->
-              # full path for file reading
-              full_path = Path.join(["priv", "static", String.replace(image_path, "/uploads/", "uploads/")])
-              result = Gemini.analyze_closet(full_path, user_context)
-              {:analysis_complete, analysis.id, result}
-            end)
+    if Enum.empty?(image_paths) do
+      {:noreply, put_flash(socket, :error, "Please select at least one image.")}
+    else
+      user_context = params["user_context"]
+      
+      analysis_params = %{
+        "user_context" => user_context,
+        "images" => Enum.map(image_paths, &%{"image_path" => &1})
+      }
 
-            {:noreply,
-             socket
-             |> assign(:loading, true)
-             |> put_flash(:info, "Image uploaded! Analyzing...")
-             |> assign(:analyses, [analysis | socket.assigns.analyses])
-             |> assign(:form, to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{})))}
+      case Closets.create_analysis(analysis_params) do
+        {:ok, analysis} ->
+          # Trigger async analysis
+          Task.async(fn ->
+            # full paths for file reading
+            full_paths =
+              Enum.map(image_paths, fn path ->
+                Path.join(["priv", "static", String.replace(path, "/uploads/", "uploads/")])
+              end)
 
-          {:error, changeset} ->
-            {:noreply, assign(socket, form: to_form(changeset))}
-        end
+            result = Gemini.analyze_closet(full_paths, user_context)
+            {:analysis_complete, analysis.id, result}
+          end)
 
-      _ ->
-        {:noreply, put_flash(socket, :error, "Please select an image.")}
+          {:noreply,
+           socket
+           |> assign(:loading, true)
+           |> put_flash(:info, "Images uploaded! Analyzing...")
+           |> assign(:analyses, [analysis | socket.assigns.analyses])
+           |> assign(:form, to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{})))}
+
+        {:error, changeset} ->
+          {:noreply, assign(socket, form: to_form(changeset))}
+      end
     end
   end
 

@@ -6,19 +6,29 @@ defmodule FitMyCloset.AI.Gemini do
   @model "gemini-flash-latest"
   @base_url "https://generativelanguage.googleapis.com/v1beta/models"
 
-  def analyze_closet(image_path, user_context \\ nil) do
+  def analyze_closet(image_paths, user_context \\ nil) when is_list(image_paths) do
     api_key = Application.get_env(:fit_my_closet, :gemini_api_key)
 
     if is_nil(api_key) do
       {:error, "GEMINI_API_KEY is not configured"}
     else
-      do_analyze(image_path, user_context, api_key)
+      do_analyze(image_paths, user_context, api_key)
     end
   end
 
-  defp do_analyze(image_path, user_context, api_key) do
-    image_data = File.read!(image_path)
-    mime_type = get_mime_type(image_path)
+  defp do_analyze(image_paths, user_context, api_key) do
+    image_parts =
+      Enum.map(image_paths, fn path ->
+        image_data = File.read!(path)
+        mime_type = get_mime_type(path)
+
+        %{
+          "inline_data" => %{
+            "mime_type" => mime_type,
+            "data" => Base.encode64(image_data)
+          }
+        }
+      end)
 
     context_prompt = if user_context && user_context != "", do: "\nAdditional context from the user: #{user_context}", else: ""
 
@@ -28,20 +38,15 @@ defmodule FitMyCloset.AI.Gemini do
           "parts" => [
             %{
               "text" => """
-              I am providing a picture of a closet. Please analyze it and identify different sections or areas of the closet.
+              I am providing pictures of a closet. Please analyze them and identify different sections or areas of the closet.
               For each section, suggest the type of clothes that should be kept there (e.g., hanging space for dresses/coats, shelves for folded sweaters, drawers for underwear, top shelf for seasonal items).
               #{context_prompt}
 
               Return the result as a JSON object with a 'sections' key, which is a list of objects.
               Each object should have 'name', 'description', and 'recommended_clothes' (as a single string with items separated by commas).
               """
-            },
-            %{
-              "inline_data" => %{
-                "mime_type" => mime_type,
-                "data" => Base.encode64(image_data)
-              }
             }
+            | image_parts
           ]
         }
       ],
@@ -53,7 +58,7 @@ defmodule FitMyCloset.AI.Gemini do
     url = "#{@base_url}/#{@model}:generateContent?key=#{api_key}"
 
     require Logger
-    Logger.info("Calling Gemini API for image: #{image_path}")
+    Logger.info("Calling Gemini API for images: #{inspect(image_paths)}")
 
     case Req.post(url, json: body, receive_timeout: 60_000) do
       {:ok, %Req.Response{status: 200, body: body}} ->

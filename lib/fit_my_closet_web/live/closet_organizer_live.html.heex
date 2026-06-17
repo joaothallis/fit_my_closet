@@ -60,36 +60,38 @@
 
     <%= for analysis <- @analyses do %>
       <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100">
-        <div class="md:flex">
-          <div class="md:w-1/3">
-            <img src={analysis.image_path} alt="Closet" class="w-full h-64 md:h-full object-cover" />
+        <div class="p-6">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-bold text-gray-900">
+              Analysis from <%= Calendar.strftime(analysis.inserted_at, "%b %d, %Y %H:%M") %>
+            </h3>
           </div>
-          <div class="md:w-2/3 p-6">
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="text-lg font-bold text-gray-900">
-                Analysis from <%= Calendar.strftime(analysis.inserted_at, "%b %d, %Y %H:%M") %>
-              </h3>
-            </div>
 
-            <%= if analysis.user_context && analysis.user_context != "" do %>
-              <div class="mb-4 p-3 bg-indigo-50 rounded-md border border-indigo-100">
-                <span class="text-xs font-bold text-indigo-700 uppercase tracking-wide">Your Context:</span>
-                <p class="text-sm text-gray-800 mt-1 italic">"<%= analysis.user_context %>"</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
+            <%= for img <- analysis.images do %>
+              <div class="aspect-square rounded-lg overflow-hidden border border-gray-200">
+                <img src={img.image_path} alt="Closet Section" class="w-full h-full object-cover hover:scale-105 transition-transform" />
               </div>
             <% end %>
+          </div>
 
+          <%= if analysis.user_context && analysis.user_context != "" do %>
+            <div class="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+              <span class="text-xs font-bold text-indigo-700 uppercase tracking-wide">Your Context:</span>
+              <p class="text-sm text-gray-800 mt-1 italic">"<%= analysis.user_context %>"</p>
+            </div>
+          <% end %>
+
+          <div class="border-t pt-6">
             <%= if is_nil(analysis.analysis_result) do %>
               <div class="flex items-center text-amber-600 animate-pulse">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing AI analysis...
+                <.icon name="hero-arrow-path" class="animate-spin mr-3 h-5 w-5" />
+                Processing multi-image AI analysis...
               </div>
             <% else %>
-              <div class="space-y-4">
+              <div class="grid md:grid-cols-2 gap-4">
                 <%= for section <- analysis.analysis_result["sections"] || [] do %>
-                  <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-500">
+                  <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-500 hover:shadow-sm transition-shadow">
                     <h4 class="font-bold text-indigo-900"><%= section["name"] %></h4>
                     <p class="text-sm text-gray-700 mt-1"><%= section["description"] %></p>
                     <div class="mt-2">
