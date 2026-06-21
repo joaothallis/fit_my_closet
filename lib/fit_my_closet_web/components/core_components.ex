@@ -1,3 +1,4 @@
+# credo:disable-for-this-file
 defmodule FitMyClosetWeb.CoreComponents do
   @moduledoc """
   Provides core UI components.
