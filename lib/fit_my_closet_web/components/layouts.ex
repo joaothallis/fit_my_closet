@@ -45,7 +45,7 @@ defmodule FitMyClosetWeb.Layouts do
       <div class="flex-none">
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <li>
-            <.link href={~p"/closet-organizer"} class="btn btn-ghost">Closet Organizer</.link>
+            <.link href={~p"/"} class="btn btn-ghost">Closet Organizer</.link>
           </li>
           <li>
             <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>

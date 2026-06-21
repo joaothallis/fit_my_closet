@@ -11,8 +11,19 @@
         >
           <.live_file_input upload={@uploads.image} class="hidden" />
           <div class="flex flex-col items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-12 w-12 text-gray-400 mb-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
             <span class="text-gray-600">Click to upload or drag and drop</span>
             <span class="text-xs text-gray-400">JPG, JPEG, PNG up to 10MB</span>
@@ -23,26 +34,40 @@
           <div class="flex items-center space-x-4 bg-gray-50 p-3 rounded-md">
             <.live_img_preview entry={entry} class="w-16 h-16 object-cover rounded-md" />
             <div class="flex-1">
-              <div class="text-sm font-medium text-gray-900"><%= entry.client_name %></div>
+              <div class="text-sm font-medium text-gray-900">{entry.client_name}</div>
               <div class="h-2 bg-gray-200 rounded-full mt-1">
-                <div class="h-2 bg-indigo-600 rounded-full" style={"width: #{entry.progress}%"}></div>
+                <div class="h-2 bg-indigo-600 rounded-full" style={"width: #{entry.progress}%"}>
+                </div>
               </div>
             </div>
-            <button type="button" phx-click="cancel-upload" phx-value-ref={entry.ref} class="text-red-500 hover:text-red-700">
+            <button
+              type="button"
+              phx-click="cancel-upload"
+              phx-value-ref={entry.ref}
+              class="text-red-500 hover:text-red-700"
+            >
               <.icon name="hero-x-mark" class="size-5" />
             </button>
           </div>
         <% end %>
 
-        <.input field={@form[:user_context]} type="textarea" label="Additional Context (Optional)" placeholder="e.g. This is a child's closet. I want to prioritize space for shoes and toys." />
+        <.input
+          field={@form[:user_context]}
+          type="textarea"
+          label="Additional Context (Optional)"
+          placeholder="e.g. This is a child's closet. I want to prioritize space for shoes and toys."
+        />
       </div>
 
       <:actions>
-        <.button type="submit" class="w-full" disabled={Enum.empty?(@uploads.image.entries) || @loading}>
+        <.button
+          type="submit"
+          class="w-full"
+          disabled={Enum.empty?(@uploads.image.entries) || @loading}
+        >
           <%= if @loading do %>
             <span class="flex items-center justify-center">
-              <.icon name="hero-arrow-path" class="animate-spin mr-2 h-5 w-5" />
-              Analyzing...
+              <.icon name="hero-arrow-path" class="animate-spin mr-2 h-5 w-5" /> Analyzing...
             </span>
           <% else %>
             Analyze Closet
@@ -63,14 +88,18 @@
         <div class="p-6">
           <div class="flex justify-between items-start mb-4">
             <h3 class="text-lg font-bold text-gray-900">
-              Analysis from <%= Calendar.strftime(analysis.inserted_at, "%b %d, %Y %H:%M") %>
+              Analysis from {Calendar.strftime(analysis.inserted_at, "%b %d, %Y %H:%M")}
             </h3>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
             <%= for img <- analysis.images do %>
               <div class="aspect-square rounded-lg overflow-hidden border border-gray-200">
-                <img src={img.image_path} alt="Closet Section" class="w-full h-full object-cover hover:scale-105 transition-transform" />
+                <img
+                  src={img.image_path}
+                  alt="Closet Section"
+                  class="w-full h-full object-cover hover:scale-105 transition-transform"
+                />
               </div>
             <% end %>
           </div>
@@ -78,7 +107,7 @@
           <%= if analysis.user_context && analysis.user_context != "" do %>
             <div class="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
               <span class="text-xs font-bold text-indigo-700 uppercase tracking-wide">Your Context:</span>
-              <p class="text-sm text-gray-800 mt-1 italic">"<%= analysis.user_context %>"</p>
+              <p class="text-sm text-gray-800 mt-1 italic">"{analysis.user_context}"</p>
             </div>
           <% end %>
 
@@ -92,15 +121,15 @@
               <div class="grid md:grid-cols-2 gap-4">
                 <%= for section <- analysis.analysis_result["sections"] || [] do %>
                   <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-500 hover:shadow-sm transition-shadow">
-                    <h4 class="font-bold text-indigo-900"><%= section["name"] %></h4>
-                    <p class="text-sm text-gray-700 mt-1"><%= section["description"] %></p>
+                    <h4 class="font-bold text-indigo-900">{section["name"]}</h4>
+                    <p class="text-sm text-gray-700 mt-1">{section["description"]}</p>
                     <div class="mt-2">
                       <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Recommended:</span>
                       <p class="text-sm font-medium text-gray-900">
                         <%= if is_list(section["recommended_clothes"]) do %>
-                          <%= Enum.join(section["recommended_clothes"], ", ") %>
+                          {Enum.join(section["recommended_clothes"], ", ")}
                         <% else %>
-                          <%= section["recommended_clothes"] %>
+                          {section["recommended_clothes"]}
                         <% end %>
                       </p>
                     </div>

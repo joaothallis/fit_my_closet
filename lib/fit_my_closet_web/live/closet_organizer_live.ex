@@ -50,7 +50,7 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
       {:noreply, put_flash(socket, :error, "Please select at least one image.")}
     else
       user_context = params["user_context"]
-      
+
       analysis_params = %{
         "user_context" => user_context,
         "images" => Enum.map(image_paths, &%{"image_path" => &1})
@@ -75,7 +75,10 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
            |> assign(:loading, true)
            |> put_flash(:info, "Images uploaded! Analyzing...")
            |> assign(:analyses, [analysis | socket.assigns.analyses])
-           |> assign(:form, to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{})))}
+           |> assign(
+             :form,
+             to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{}))
+           )}
 
         {:error, changeset} ->
           {:noreply, assign(socket, form: to_form(changeset))}
@@ -87,16 +90,19 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
   def handle_info({ref, {:analysis_complete, id, result}}, socket) do
     # Flush the :DOWN message
     Process.demonitor(ref, [:flush])
-    
+
     require Logger
     Logger.info("Received analysis_complete for ID #{id}")
-    
+
     analysis = Closets.get_analysis!(id)
 
     case result do
       {:ok, analysis_result} ->
         Logger.info("Analysis success for ID #{id}, updating DB...")
-        {:ok, updated_analysis} = Closets.update_analysis(analysis, %{analysis_result: analysis_result})
+
+        {:ok, updated_analysis} =
+          Closets.update_analysis(analysis, %{analysis_result: analysis_result})
+
         Logger.info("DB updated for ID #{id}")
 
         updated_analyses =

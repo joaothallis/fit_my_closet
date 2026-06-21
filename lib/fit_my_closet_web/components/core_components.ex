@@ -103,7 +103,7 @@ defmodule FitMyClosetWeb.CoreComponents do
   def button(assigns) do
     variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
     variant_class = Map.fetch!(variants, assigns[:variant])
-    
+
     assigns =
       assign(assigns, :class, [
         "btn",

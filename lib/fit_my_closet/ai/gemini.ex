@@ -30,7 +30,10 @@ defmodule FitMyCloset.AI.Gemini do
         }
       end)
 
-    context_prompt = if user_context && user_context != "", do: "\nAdditional context from the user: #{user_context}", else: ""
+    context_prompt =
+      if user_context && user_context != "",
+        do: "\nAdditional context from the user: #{user_context}",
+        else: ""
 
     body = %{
       "contents" => [
