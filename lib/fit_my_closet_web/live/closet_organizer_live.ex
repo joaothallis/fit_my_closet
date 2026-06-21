@@ -1,8 +1,9 @@
 defmodule FitMyClosetWeb.ClosetOrganizerLive do
   use FitMyClosetWeb, :live_view
 
-  alias FitMyCloset.Closets
   alias FitMyCloset.AI.Gemini
+  alias FitMyCloset.Closets
+  alias FitMyCloset.Closets.ClosetAnalysis
 
   @impl true
   def mount(_params, _session, socket) do
@@ -10,14 +11,14 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
      socket
      |> assign(:analyses, Closets.list_analyses())
      |> assign(:loading, false)
-     |> assign(:form, to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{})))
+     |> assign(:form, to_form(Closets.change_analysis(%ClosetAnalysis{})))
      |> allow_upload(:image, accept: ~w(.jpg .jpeg .png), max_entries: 5)}
   end
 
   @impl true
   def handle_event("validate", %{"closet_analysis" => params}, socket) do
     form =
-      %FitMyCloset.Closets.ClosetAnalysis{}
+      %ClosetAnalysis{}
       |> Closets.change_analysis(params)
       |> Map.put(:action, :validate)
       |> to_form()
@@ -49,41 +50,44 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
     if Enum.empty?(image_paths) do
       {:noreply, put_flash(socket, :error, "Please select at least one image.")}
     else
-      user_context = params["user_context"]
-
-      analysis_params = %{
-        "user_context" => user_context,
-        "images" => Enum.map(image_paths, &%{"image_path" => &1})
-      }
-
-      case Closets.create_analysis(analysis_params) do
-        {:ok, analysis} ->
-          # Trigger async analysis
-          Task.async(fn ->
-            # full paths for file reading
-            full_paths =
-              Enum.map(image_paths, fn path ->
-                Path.join(["priv", "static", String.replace(path, "/uploads/", "uploads/")])
-              end)
-
-            result = Gemini.analyze_closet(full_paths, user_context)
-            {:analysis_complete, analysis.id, result}
-          end)
-
-          {:noreply,
-           socket
-           |> assign(:loading, true)
-           |> put_flash(:info, "Images uploaded! Analyzing...")
-           |> assign(:analyses, [analysis | socket.assigns.analyses])
-           |> assign(
-             :form,
-             to_form(Closets.change_analysis(%FitMyCloset.Closets.ClosetAnalysis{}))
-           )}
-
-        {:error, changeset} ->
-          {:noreply, assign(socket, form: to_form(changeset))}
-      end
+      save_analysis(socket, params, image_paths)
     end
+  end
+
+  defp save_analysis(socket, params, image_paths) do
+    user_context = params["user_context"]
+
+    analysis_params = %{
+      "user_context" => user_context,
+      "images" => Enum.map(image_paths, &%{"image_path" => &1})
+    }
+
+    case Closets.create_analysis(analysis_params) do
+      {:ok, analysis} ->
+        trigger_async_analysis(image_paths, user_context, analysis)
+
+        {:noreply,
+         socket
+         |> assign(:loading, true)
+         |> put_flash(:info, "Images uploaded! Analyzing...")
+         |> assign(:analyses, [analysis | socket.assigns.analyses])
+         |> assign(:form, to_form(Closets.change_analysis(%ClosetAnalysis{})))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
+    end
+  end
+
+  defp trigger_async_analysis(image_paths, user_context, analysis) do
+    Task.async(fn ->
+      full_paths =
+        Enum.map(image_paths, fn path ->
+          Path.join(["priv", "static", String.replace(path, "/uploads/", "uploads/")])
+        end)
+
+      result = Gemini.analyze_closet(full_paths, user_context)
+      {:analysis_complete, analysis.id, result}
+    end)
   end
 
   @impl true
@@ -95,33 +99,7 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
     Logger.info("Received analysis_complete for ID #{id}")
 
     analysis = Closets.get_analysis!(id)
-
-    case result do
-      {:ok, analysis_result} ->
-        Logger.info("Analysis success for ID #{id}, updating DB...")
-
-        {:ok, updated_analysis} =
-          Closets.update_analysis(analysis, %{analysis_result: analysis_result})
-
-        Logger.info("DB updated for ID #{id}")
-
-        updated_analyses =
-          Enum.map(socket.assigns.analyses, fn a ->
-            if a.id == id, do: updated_analysis, else: a
-          end)
-
-        {:noreply,
-         socket
-         |> assign(:loading, false)
-         |> assign(:analyses, updated_analyses)
-         |> put_flash(:info, "Analysis complete!")}
-
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> assign(:loading, false)
-         |> put_flash(:error, "Analysis failed: #{reason}")}
-    end
+    handle_analysis_result(socket, id, analysis, result)
   end
 
   # Handle Task cleanup
@@ -135,5 +113,33 @@ defmodule FitMyClosetWeb.ClosetOrganizerLive do
     require Logger
     Logger.debug("Unhandled message in ClosetOrganizerLive: #{inspect(msg)}")
     {:noreply, socket}
+  end
+
+  defp handle_analysis_result(socket, id, analysis, {:ok, analysis_result}) do
+    require Logger
+    Logger.info("Analysis success for ID #{id}, updating DB...")
+
+    {:ok, updated_analysis} =
+      Closets.update_analysis(analysis, %{analysis_result: analysis_result})
+
+    Logger.info("DB updated for ID #{id}")
+
+    updated_analyses =
+      Enum.map(socket.assigns.analyses, fn a ->
+        if a.id == id, do: updated_analysis, else: a
+      end)
+
+    {:noreply,
+     socket
+     |> assign(:loading, false)
+     |> assign(:analyses, updated_analyses)
+     |> put_flash(:info, "Analysis complete!")}
+  end
+
+  defp handle_analysis_result(socket, _id, _analysis, {:error, reason}) do
+    {:noreply,
+     socket
+     |> assign(:loading, false)
+     |> put_flash(:error, "Analysis failed: #{reason}")}
   end
 end

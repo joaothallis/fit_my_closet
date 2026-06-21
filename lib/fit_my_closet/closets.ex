@@ -4,8 +4,8 @@ defmodule FitMyCloset.Closets do
   """
 
   import Ecto.Query, warn: false
-  alias FitMyCloset.Repo
   alias FitMyCloset.Closets.ClosetAnalysis
+  alias FitMyCloset.Repo
 
   @doc """
   Returns the list of closet_analyses.
