@@ -43,3 +43,6 @@ npm-debug.log
 !/priv/static/uploads/.gitkeep
 
 .direnv/
+
+# Dialyzer PLT files
+/priv/plts/

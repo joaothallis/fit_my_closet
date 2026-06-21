@@ -11,7 +11,11 @@ defmodule FitMyCloset.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      dialyzer: [
+        plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+        plt_add_apps: [:mix]
+      ]
     ]
   end
 
@@ -42,6 +46,7 @@ defmodule FitMyCloset.MixProject do
     [
       {:tidewave, "~> 0.5", only: :dev},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:phoenix, "~> 1.8.8"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
@@ -95,6 +100,7 @@ defmodule FitMyCloset.MixProject do
         "deps.unlock --unused",
         "format",
         "credo --strict",
+        "dialyzer",
         "test"
       ]
     ]
