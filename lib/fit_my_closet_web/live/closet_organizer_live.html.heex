@@ -1,19 +1,21 @@
 <div class="max-w-4xl mx-auto p-6">
-  <h1 class="text-3xl font-bold mb-6 text-gray-800">Closet Organizer</h1>
+  <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Closet Organizer</h1>
 
-  <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-    <h2 class="text-xl font-semibold mb-4">Analyze a new picture</h2>
+  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
+      Analyze a new picture
+    </h2>
     <.simple_form for={@form} id="upload-form" phx-submit="save" phx-change="validate">
       <div class="space-y-4">
         <label
-          class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-indigo-500 transition-colors cursor-pointer"
+          class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 hover:border-indigo-500 dark:hover:border-indigo-400 transition-colors cursor-pointer"
           phx-drop-target={@uploads.image.ref}
         >
           <.live_file_input upload={@uploads.image} class="hidden" />
           <div class="flex flex-col items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-12 w-12 text-gray-400 mb-2"
+              class="h-12 w-12 text-gray-400 dark:text-gray-500 mb-2"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -25,17 +27,19 @@
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <span class="text-gray-600">Click to upload or drag and drop</span>
-            <span class="text-xs text-gray-400">JPG, JPEG, PNG up to 10MB</span>
+            <span class="text-gray-600 dark:text-gray-300">Click to upload or drag and drop</span>
+            <span class="text-xs text-gray-400 dark:text-gray-500">JPG, JPEG, PNG up to 10MB</span>
           </div>
         </label>
 
         <%= for entry <- @uploads.image.entries do %>
-          <div class="flex items-center space-x-4 bg-gray-50 p-3 rounded-md">
+          <div class="flex items-center space-x-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
             <.live_img_preview entry={entry} class="w-16 h-16 object-cover rounded-md" />
             <div class="flex-1">
-              <div class="text-sm font-medium text-gray-900">{entry.client_name}</div>
-              <div class="h-2 bg-gray-200 rounded-full mt-1">
+              <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {entry.client_name}
+              </div>
+              <div class="h-2 bg-gray-200 dark:bg-gray-600 rounded-full mt-1">
                 <div class="h-2 bg-indigo-600 rounded-full" style={"width: #{entry.progress}%"}>
                 </div>
               </div>
@@ -44,7 +48,7 @@
               type="button"
               phx-click="cancel-upload"
               phx-value-ref={entry.ref}
-              class="text-red-500 hover:text-red-700"
+              class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
             >
               <.icon name="hero-x-mark" class="size-5" />
             </button>
@@ -78,23 +82,27 @@
   </div>
 
   <div class="space-y-8">
-    <h2 class="text-2xl font-bold text-gray-800 border-b pb-2">Previous Analyses</h2>
+    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+      Previous Analyses
+    </h2>
     <%= if Enum.empty?(@analyses) do %>
-      <p class="text-gray-500 italic">No analyses yet. Upload a picture to get started!</p>
+      <p class="text-gray-500 dark:text-gray-400 italic">
+        No analyses yet. Upload a picture to get started!
+      </p>
     <% end %>
 
     <%= for analysis <- @analyses do %>
-      <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700">
         <div class="p-6">
           <div class="flex justify-between items-start mb-4">
-            <h3 class="text-lg font-bold text-gray-900">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
               Analysis from {Calendar.strftime(analysis.inserted_at, "%b %d, %Y %H:%M")}
             </h3>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
             <%= for img <- analysis.images do %>
-              <div class="aspect-square rounded-lg overflow-hidden border border-gray-200">
+              <div class="aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
                 <img
                   src={img.image_path}
                   alt="Closet Section"
@@ -105,27 +113,33 @@
           </div>
 
           <%= if analysis.user_context && analysis.user_context != "" do %>
-            <div class="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-              <span class="text-xs font-bold text-indigo-700 uppercase tracking-wide">Your Context:</span>
-              <p class="text-sm text-gray-800 mt-1 italic">"{analysis.user_context}"</p>
+            <div class="mb-6 p-4 bg-indigo-50 dark:bg-indigo-950 rounded-lg border border-indigo-100 dark:border-indigo-800">
+              <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wide">Your Context:</span>
+              <p class="text-sm text-gray-800 dark:text-gray-200 mt-1 italic">
+                "{analysis.user_context}"
+              </p>
             </div>
           <% end %>
 
-          <div class="border-t pt-6">
+          <div class="border-t border-gray-100 dark:border-gray-700 pt-6">
             <%= if is_nil(analysis.analysis_result) do %>
-              <div class="flex items-center text-amber-600 animate-pulse">
+              <div class="flex items-center text-amber-600 dark:text-amber-400 animate-pulse">
                 <.icon name="hero-arrow-path" class="animate-spin mr-3 h-5 w-5" />
                 Processing multi-image AI analysis...
               </div>
             <% else %>
               <div class="grid md:grid-cols-2 gap-4">
                 <%= for section <- analysis.analysis_result["sections"] || [] do %>
-                  <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-500 hover:shadow-sm transition-shadow">
-                    <h4 class="font-bold text-indigo-900">{section["name"]}</h4>
-                    <p class="text-sm text-gray-700 mt-1">{section["description"]}</p>
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border-l-4 border-indigo-500 hover:shadow-sm transition-shadow">
+                    <h4 class="font-bold text-indigo-900 dark:text-indigo-300">
+                      {section["name"]}
+                    </h4>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                      {section["description"]}
+                    </p>
                     <div class="mt-2">
-                      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Recommended:</span>
-                      <p class="text-sm font-medium text-gray-900">
+                      <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recommended:</span>
+                      <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                         <%= if is_list(section["recommended_clothes"]) do %>
                           {Enum.join(section["recommended_clothes"], ", ")}
                         <% else %>
